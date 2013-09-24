@@ -76,6 +76,3 @@ class MethodHandlerTest(unittest.TestCase):
     res = app.get('/some/second/first')
     self.assertEqual(200, res.status_code)
     self.assertEqual('first second', res.data)
-
-if __name__ == '__main__':
-  unittest.main()
