@@ -58,23 +58,28 @@ class TextField(Field):
     return val
 
 class DictField(Field):
-  def __init__(self, cannone=True, fields=None):
+  def __init__(self, cannone=True, struct=None):
     Field.__init__(self, cannone)
-    self.fields = fields
+    self.struct = struct
 
   def wipe(self, val):
     val = super(DictField, self).wipe(val)
     if None is val:
       return val
-    if not isinstance(val, dict):
+    elif not isinstance(val, dict):
       self.error(val, _('Should be a dictionary.'))
-    if None is self.fields:
+    elif 0 is len(val):
+      if self.cannone:
+        return val
+      else:
+        self.error(val, _('Needs to be filled.'))
+    elif None is self.struct:
       return val
 
     data = val
     vals = {}
     errs = {}
-    for name, field in self.fields.iteritems():
+    for name, field in self.struct.iteritems():
       val = data.get(name, None)
       try:
         vals[name] = field.wipe(val)

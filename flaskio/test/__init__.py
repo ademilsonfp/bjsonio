@@ -1,5 +1,5 @@
 # coding: utf-8
 
-import test_routing
+import test_data
 
-__all__ = ['test_routing']
+__all__ = ['test_data']
