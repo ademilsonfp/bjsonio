@@ -78,9 +78,28 @@ class DictFieldTest(unittest.TestCase):
     self.assertRaises(data.FieldError, field.wipe, 'invalid')
 
     # struct test
-    field = data.DictField(struct={'k': data.Field(cannone=False)})
+    field = data.DictField(struct={'k': data.TextField(cannone=False)})
     self.assertEqual(None, field.wipe(None))
     self.assertEqual({}, field.wipe({}))
-    self.assertEqual({'k': 'hello'}, field.wipe({'k': 'hello', 'a': None}))
-    self.assertRaises(data.FieldError, field.wipe, {'a': None})
+    self.assertEqual({'k': 'foo'}, field.wipe({'k': ' foo ', 'l': None}))
+    self.assertRaises(data.FieldError, field.wipe, {'l': None})
     self.assertRaises(data.FieldError, field.wipe, {'k': None})
+
+    # error test
+    try:
+      field.wipe({'k': None})
+    except data.FieldError as err:
+      self.assertEqual(True, isinstance(err.val, dict))
+      self.assertIn('!errors', err.val)
+
+    try:
+      struct = {'a': data.TextField(), 'b': data.Field(cannone=False)}
+      field = data.DictField(struct=struct)
+      field.wipe({'a': ' foo '})
+    except data.FieldError as err:
+      self.assertEqual(True, isinstance(err.val, dict))
+      self.assertIn('!errors', err.val)
+      self.assertIn('b', err.val['!errors'])
+      self.assertIn('values', err.val)
+      self.assertIn('a', err.val['values'])
+      self.assertEqual('foo', err.val['values']['a'])
