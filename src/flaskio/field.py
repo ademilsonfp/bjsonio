@@ -1,3 +1,4 @@
 # coding: utf-8
 
-from data import Field as field, TextField as text, DictField as dict
+from data import Field as field, TextField as text, DictField as dict, \
+    DateTimeField as datetime

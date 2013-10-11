@@ -2,6 +2,7 @@
 
 import re
 from gettext import gettext as _, ngettext as n_
+import datetime
 
 class FieldError(Exception):
   def __init__(self, field, val, msg):
@@ -23,6 +24,9 @@ class Field(object):
 
   def json(self, val):
     return val
+
+  def __str__(self):
+    return '<FieldError:%s> %s' % (self.field.name, self.msg)
 
 class TextField(Field):
   def __init__(self, cannone=True, strip=True, inline=False, minlen=None,
@@ -90,6 +94,66 @@ class DictField(Field):
     if 0 < num_errs:
       val = {'!errors': errs, 'values': vals}
       msg = n_('There is a field to be fixed.',
-          'There are fields to be fixed.', num_errs)
+          'There are %d fields to be fixed.', num_errs) % num_errs
       self.error(val, msg)
     return vals
+
+class DateTimeField(Field):
+  FORMAT = re.compile(
+      r'^(?P<year>\d{4})(?:-(?P<month>\d{2})(?:-(?P<day>\d{2}))?' + \
+      r'(?:T(?P<hour>\d{2}):(?P<minute>\d{2})(?::(?P<second>\d{2})' + \
+      r'(?P<microsecond>\.\d+)?)?(?P<tzinfo>Z|(?:-|\+)\d{2}:\d{2}))?)?$')
+
+  class Tz(datetime.tzinfo):
+    def __init__(self, **kwargs):
+      self.offset = datetime.timedelta(**kwargs)
+
+    def utcoffset(self, dt):
+      return self.offset
+
+  def wipe(self, val):
+    'based on http://www.w3.org/TR/NOTE-datetime'
+
+    val = Field.wipe(self, val)
+    if None is val:
+      return val
+
+    regex = DateTimeField.FORMAT
+    match = regex.match(val)
+    if None is match:
+      self.error(val, _('Should be a valid date and time.'))
+
+    dt = match.groupdict()
+    dt['year'] = int(dt['year'])
+
+    month = dt['month']
+    if None is not month:
+      dt['month'] = int(month)
+
+    day = dt['day']
+    if None is not day:
+      dt['day'] = int(day)
+
+    hour = dt['hour']
+    if None is not hour:
+      dt['hour'] = int(hour)
+      dt['minute'] = int(dt['minute'])
+
+      second = dt['second']
+      if None is not second:
+        dt['second'] = int(second)
+
+      microsecond = dt['microsecond']
+      if None is not microsecond:
+        dt['microsecond'] = int(1000000 * float(microsecond))
+
+      tz = DateTimeField.Tz
+      tzinf = dt['tzinfo']
+      if 'Z' is tzinf:
+        dt['tzinfo'] = tz()
+      else:
+        h, m = (int(i) for i in tzinf.split(':'))
+        dt['tzinfo'] = tz(hours=h, minutes=m)
+
+    dt = datetime.datetime(**dt)
+    return dt
