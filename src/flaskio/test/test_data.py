@@ -1,6 +1,8 @@
 # coding: utf-8
 
 import unittest
+from datetime import datetime, timedelta
+
 from .. import data
 
 class FieldTest(unittest.TestCase):
@@ -103,3 +105,67 @@ class DictFieldTest(unittest.TestCase):
       self.assertIn('values', err.val)
       self.assertIn('a', err.val['values'])
       self.assertEqual('foo', err.val['values']['a'])
+
+class DateTimeFieldTest(unittest.TestCase):
+  def test_creation(self):
+    field = data.DateTimeField()
+    self.assertEqual(True, field.cannone)
+
+  def test_wipe(self):
+    # empty test
+    field = data.DateTimeField()
+    self.assertEqual(None, field.wipe(None))
+
+    field = data.DateTimeField(cannone=False)
+    self.assertRaises(data.FieldError, field.wipe, None)
+
+    # test full format
+    tz = data.DateTimeField.Tz
+    val = datetime(1997, 7, 16, 19, 20, 30, 450000, tz(1))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30.45+01:00'))
+
+    val = datetime(1997, 7, 16, 19, 20, 30, 450000, tz(-2, 50))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30.45-02:50'))
+
+    val = datetime(1997, 7, 16, 19, 20, 30, 450000, tz())
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30.45Z'))
+
+    # test format without decimal part of seconds
+    val = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(1))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30+01:00'))
+
+    val = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(-2, 50))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30-02:50'))
+
+    val = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz())
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30Z'))
+
+    # test format without seconds
+    val = datetime(1997, 7, 16, 19, 20, tzinfo=tz(1))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20+01:00'))
+
+    val = datetime(1997, 7, 16, 19, 20, tzinfo=tz(-2, 50))
+    self.assertEqual(val, field.wipe('1997-07-16T19:20-02:50'))
+
+    val = datetime(1997, 7, 16, 19, 20, tzinfo=tz())
+    self.assertEqual(val, field.wipe('1997-07-16T19:20Z'))
+
+    # test format without time
+    val = datetime(1997, 7, 16)
+    self.assertEqual(val, field.wipe('1997-07-16'))
+
+    # test format without day
+    val = datetime(1997, 7, 1)
+    self.assertEqual(val, field.wipe('1997-07'))
+
+    # test format without month
+    val = datetime(1997, 1, 1)
+    self.assertEqual(val, field.wipe('1997'))
+
+    # test some invalids
+    self.assertRaises(data.FieldError, field.wipe, 'foo')
+    self.assertRaises(data.FieldError, field.wipe, '1997-07-16T19:20')
+    self.assertRaises(data.FieldError, field.wipe, '1997-07-1619:20Z')
+    self.assertRaises(data.FieldError, field.wipe, '1997-07T19:20Z')
+    self.assertRaises(data.FieldError, field.wipe, '1997-07-16T19Z')
+    self.assertRaises(data.FieldError, field.wipe, '1997-07-16T19:20:Z')

@@ -101,9 +101,9 @@ class DictField(Field):
 
 class DateTimeField(Field):
   FORMAT = re.compile(
-      r'^(?P<year>\d{4})(?:-(?P<month>\d{2})(?:-(?P<day>\d{2}))?' + \
+      r'^(?P<year>\d{4})(?:-(?P<month>\d{2})(?:-(?P<day>\d{2})' + \
       r'(?:T(?P<hour>\d{2}):(?P<minute>\d{2})(?::(?P<second>\d{2})' + \
-      r'(?P<microsecond>\.\d+)?)?(?P<tzinfo>Z|(?:-|\+)\d{2}:\d{2}))?)?$')
+      r'(?P<microsecond>\.\d+)?)?(?P<tzinfo>Z|(?:-|\+)\d{2}:\d{2}))?)?)?$')
 
   class Tz(datetime.tzinfo):
     def __init__(self, hours=0, minutes=0):
