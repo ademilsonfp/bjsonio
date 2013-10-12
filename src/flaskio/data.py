@@ -10,6 +10,10 @@ class FieldError(Exception):
     self.val = val
     self.msg = msg
 
+  def __str__(self):
+    cls = self.field.__class__.__name__
+    return '%s\n%s: %s' % (self.msg, cls, self.val)
+
 class Field(object):
   def __init__(self, cannone=True):
     self.cannone = cannone
@@ -24,9 +28,6 @@ class Field(object):
 
   def json(self, val):
     return val
-
-  def __str__(self):
-    return '<FieldError:%s> %s' % (self.field.name, self.msg)
 
 class TextField(Field):
   def __init__(self, cannone=True, strip=True, inline=False, minlen=None,
@@ -94,7 +95,7 @@ class DictField(Field):
     if 0 < num_errs:
       val = {'!errors': errs, 'values': vals}
       msg = n_('There is a field to be fixed.',
-          'There are %d fields to be fixed.', num_errs) % num_errs
+          'There are %d fields to be fixed.' % num_errs, num_errs)
       self.error(val, msg)
     return vals
 
@@ -105,8 +106,11 @@ class DateTimeField(Field):
       r'(?P<microsecond>\.\d+)?)?(?P<tzinfo>Z|(?:-|\+)\d{2}:\d{2}))?)?$')
 
   class Tz(datetime.tzinfo):
-    def __init__(self, **kwargs):
-      self.offset = datetime.timedelta(**kwargs)
+    def __init__(self, hours=0, minutes=0):
+      self.offset = datetime.timedelta(hours=hours, minutes=minutes)
+
+    def __repr__(self):
+      return repr(self.offset)
 
     def utcoffset(self, dt):
       return self.offset
@@ -118,42 +122,32 @@ class DateTimeField(Field):
     if None is val:
       return val
 
-    regex = DateTimeField.FORMAT
-    match = regex.match(val)
+    match = DateTimeField.FORMAT.match(val)
     if None is match:
       self.error(val, _('Should be a valid date and time.'))
 
-    dt = match.groupdict()
-    dt['year'] = int(dt['year'])
+    year, month, day, hour, minute, second, microsecond, tzinfo = \
+        match.groups()
 
-    month = dt['month']
-    if None is not month:
+    dt = {'year': int(year)}
+    if None is month:
+      dt['month'] = 1
+      dt['day'] = 1
+    else:
       dt['month'] = int(month)
-
-    day = dt['day']
-    if None is not day:
-      dt['day'] = int(day)
-
-    hour = dt['hour']
-    if None is not hour:
-      dt['hour'] = int(hour)
-      dt['minute'] = int(dt['minute'])
-
-      second = dt['second']
-      if None is not second:
-        dt['second'] = int(second)
-
-      microsecond = dt['microsecond']
-      if None is not microsecond:
-        dt['microsecond'] = int(1000000 * float(microsecond))
-
-      tz = DateTimeField.Tz
-      tzinf = dt['tzinfo']
-      if 'Z' is tzinf:
-        dt['tzinfo'] = tz()
+      if None is day:
+        dt['day'] = 1
       else:
-        h, m = (int(i) for i in tzinf.split(':'))
-        dt['tzinfo'] = tz(hours=h, minutes=m)
-
+        dt['day'] = int(day)
+        if None is not hour:
+          tz = DateTimeField.Tz
+          dt['hour'] = int(hour)
+          dt['minute'] = int(minute)
+          dt['tzinfo'] = tz() if 'Z' == tzinfo else \
+              tz(*(int(i) for i in tzinfo.split(':')))
+          if None is not second:
+            dt['second'] = int(second)
+          if None is not microsecond:
+            dt['microsecond'] = int(1000000 * float(microsecond))
     dt = datetime.datetime(**dt)
     return dt
