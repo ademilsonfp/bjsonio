@@ -178,37 +178,37 @@ class DateTimeFieldTest(unittest.TestCase):
     # test all arguments
     tz = data.DateTimeField.Tz
     dt = datetime(1997, 7, 16, 19, 20, 30, 450000, tz(1))
-    self.assertEqual('1997-07-16T19:20:30.450000+01:00', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.45+01:00', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, 30, 450000, tz(-2, -50))
-    self.assertEqual('1997-07-16T19:20:30.450000-02:50', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.45-02:50', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, 30, 450000, tz())
-    self.assertEqual('1997-07-16T19:20:30.450000Z', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.45Z', field.json(dt))
 
     # test format without microtime
     dt = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(1))
-    self.assertEqual('1997-07-16T19:20:30.000000+01:00', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.0+01:00', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(-2, -50))
-    self.assertEqual('1997-07-16T19:20:30.000000-02:50', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.0-02:50', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz())
-    self.assertEqual('1997-07-16T19:20:30.000000Z', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:30.0Z', field.json(dt))
 
     # test format without second
     dt = datetime(1997, 7, 16, 19, 20, tzinfo=tz(1))
-    self.assertEqual('1997-07-16T19:20:00.000000+01:00', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:00.0+01:00', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, tzinfo=tz(-2, -50))
-    self.assertEqual('1997-07-16T19:20:00.000000-02:50', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:00.0-02:50', field.json(dt))
 
     dt = datetime(1997, 7, 16, 19, 20, tzinfo=tz())
-    self.assertEqual('1997-07-16T19:20:00.000000Z', field.json(dt))
+    self.assertEqual('1997-07-16T19:20:00.0Z', field.json(dt))
 
     # test format without time
     dt = datetime(1997, 7, 16)
-    self.assertEqual('1997-07-16T00:00:00.000000Z', field.json(dt))
+    self.assertEqual('1997-07-16T00:00:00.0Z', field.json(dt))
 
     # test invalid
     self.assertRaises(TypeError, field.json, 'foo')

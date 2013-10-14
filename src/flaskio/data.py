@@ -39,7 +39,7 @@ class TextField(Field):
     self.maxlen = maxlen
 
   def wipe(self, val):
-    val = super(TextField, self).wipe(val)
+    val = Field.wipe(self, val)
     if None is val:
       return val
     if self.strip:
@@ -68,7 +68,7 @@ class DictField(Field):
     self.struct = struct
 
   def wipe(self, val):
-    val = super(DictField, self).wipe(val)
+    val = Field.wipe(self, val)
     if None is val:
       return val
     elif not isinstance(val, dict):
@@ -166,11 +166,11 @@ class DateTimeField(Field):
   def json(self, val):
     if None is val:
       return None
-    elif not hasattr(val, '__class__') or \
-        datetime.datetime is not val.__class__:
+    elif not isinstance(val, datetime.datetime):
       raise TypeError('Invalid %s' % datetime.datetime)
 
+    ms = re.sub(r'(\d)0+$', r'\1', val.strftime('%f'))
     tz = val.strftime('%z')
     tz = 'Z' if '' == tz or '+0000' == tz else '%s:%s' % (tz[:3], tz[3:])
-    js = val.strftime('%Y-%m-%dT%H:%M:%S.%f') + tz
+    js = ''.join([val.strftime('%Y-%m-%dT%H:%M:%S.'), ms, tz])
     return js
