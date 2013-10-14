@@ -1,4 +1,4 @@
-flaskio (under development)
+Basic JSON I/O
 ===========================
 
-Some utils for personal Flask projects.
+A way to encode JSON data to Python with validation and nice error messages which can be translated and used on UI.

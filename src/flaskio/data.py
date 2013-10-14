@@ -172,5 +172,6 @@ class DateTimeField(Field):
     ms = re.sub(r'(\d)0+$', r'\1', val.strftime('%f'))
     tz = val.strftime('%z')
     tz = 'Z' if '' == tz or '+0000' == tz else '%s:%s' % (tz[:3], tz[3:])
-    js = ''.join([val.strftime('%Y-%m-%dT%H:%M:%S.'), ms, tz])
+    js = val.strftime('%Y-%m-%dT%H:%M:%S.')
+    js = ''.join([js, ms, tz])
     return js
