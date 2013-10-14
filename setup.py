@@ -3,13 +3,11 @@
 from setuptools import setup, find_packages
 
 setup(
-  name='flaskio',
+  name='bjsonio',
   version='0.1-dev',
   author='Ademilson',
   author_email='ademilsonfp@gmail.com',
-  install_requires=[
-    'Flask==0.10'
-  ],
+  install_requires=[],
   package_dir={'': 'src'},
   packages=find_packages('src', exclude=['test'])
 )
