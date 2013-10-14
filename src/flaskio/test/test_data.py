@@ -130,6 +130,12 @@ class DateTimeFieldTest(unittest.TestCase):
     val = datetime(1997, 7, 16, 19, 20, 30, 450000, tz())
     self.assertEqual(val, field.wipe('1997-07-16T19:20:30.45Z'))
 
+    val = datetime(1997, 7, 16, 19, 20, 30, 45000, tz())
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30.045Z'))
+
+    val = datetime(1997, 7, 16, 19, 20, 30, 4500, tz())
+    self.assertEqual(val, field.wipe('1997-07-16T19:20:30.0045Z'))
+
     # test format without decimal part of seconds
     val = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(1))
     self.assertEqual(val, field.wipe('1997-07-16T19:20:30+01:00'))
@@ -185,6 +191,12 @@ class DateTimeFieldTest(unittest.TestCase):
 
     dt = datetime(1997, 7, 16, 19, 20, 30, 450000, tz())
     self.assertEqual('1997-07-16T19:20:30.45Z', field.json(dt))
+
+    dt = datetime(1997, 7, 16, 19, 20, 30, 45000, tz())
+    self.assertEqual('1997-07-16T19:20:30.045Z', field.json(dt))
+
+    dt = datetime(1997, 7, 16, 19, 20, 30, 4500, tz())
+    self.assertEqual('1997-07-16T19:20:30.0045Z', field.json(dt))
 
     # test format without microtime
     dt = datetime(1997, 7, 16, 19, 20, 30, tzinfo=tz(1))
