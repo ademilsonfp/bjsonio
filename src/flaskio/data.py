@@ -109,11 +109,14 @@ class DateTimeField(Field):
     def __init__(self, hours=0, minutes=0):
       self.offset = datetime.timedelta(hours=hours, minutes=minutes)
 
-    def __repr__(self):
-      return repr(self.offset)
-
     def utcoffset(self, dt):
       return self.offset
+
+    def dst(self, dt):
+      return datetime.timedelta(0)
+
+    def __repr__(self):
+      return repr(self.offset)
 
   def wipe(self, val):
     'based on http://www.w3.org/TR/NOTE-datetime'
@@ -143,11 +146,31 @@ class DateTimeField(Field):
           tz = DateTimeField.Tz
           dt['hour'] = int(hour)
           dt['minute'] = int(minute)
-          dt['tzinfo'] = tz() if 'Z' == tzinfo else \
-              tz(*(int(i) for i in tzinfo.split(':')))
+
+          if 'Z' == tzinfo:
+            dt['tzinfo'] = tz()
+          else:
+            delta = [int(i) for i in tzinfo.split(':')]
+            if 0 > delta[0]:
+              delta[1] *= -1
+            dt['tzinfo'] = tz(*delta)
+
           if None is not second:
             dt['second'] = int(second)
           if None is not microsecond:
             dt['microsecond'] = int(1000000 * float(microsecond))
+
     dt = datetime.datetime(**dt)
     return dt
+
+  def json(self, val):
+    if None is val:
+      return None
+    elif not hasattr(val, '__class__') or \
+        datetime.datetime is not val.__class__:
+      raise TypeError('Invalid %s' % datetime.datetime)
+
+    tz = val.strftime('%z')
+    tz = 'Z' if '' == tz or '+0000' == tz else '%s:%s' % (tz[:3], tz[3:])
+    js = val.strftime('%Y-%m-%dT%H:%M:%S.%f') + tz
+    return js
