@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-  name='bjsonio',
+  name='jsonio',
   version='0.1-dev',
   author='Ademilson',
   author_email='ademilsonfp@gmail.com',
